@@ -18,8 +18,9 @@
 	/>
 	<span class="sr-only">Toggle theme</span>
 </Button>
+
 <div class="flex h-screen flex-col items-center p-4">
-	<span class="text-3xl">E05-Tracker</span>
+	<h1 class="mb-8 mt-4 text-3xl">E05-Tracker</h1>
 
 	<slot />
 </div>
