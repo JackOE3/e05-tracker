@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 
 import { handler } from '../build/handler.js';
 
-const port = 3000;
+const PORT = process.env.port || 3000;
 const app = express();
 const server = createServer(app);
 
@@ -12,7 +12,6 @@ const io = new Server(server);
 
 io.on('connection', (socket) => {
 	socket.emit('eventFromServer', 'Hello, World 👋');
-	console.log('connected');
 
 	socket.on('lapCompleted', (message) => {
 		//console.log('data received:', message);
@@ -31,4 +30,6 @@ io.on('connection', (socket) => {
 // https://github.com/sveltejs/kit/tree/master/packages/adapter-node#custom-server
 app.use(handler);
 
-server.listen(port);
+server.listen(PORT, () => {
+	console.log(`listening on *:${PORT}`);
+});

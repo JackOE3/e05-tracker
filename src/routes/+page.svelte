@@ -16,7 +16,6 @@
 		Radio
 	} from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
-	import { Separator } from '$lib/components/ui/separator';
 	import { formatTime, median, scrollToBottom } from '$lib/my-utils';
 
 	let updateScroll = 0;
