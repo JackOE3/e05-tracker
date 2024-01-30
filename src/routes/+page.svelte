@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { io } from '$lib/webSocketConnection.js';
+	//import { io } from '$lib/webSocketConnection.js';
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Button } from '$lib/components/ui/button';
@@ -16,76 +16,44 @@
 		Radio
 	} from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
-	import { formatTime, median, scrollToBottom } from '$lib/my-utils';
+	import { formatTime, scrollToBottom } from '$lib/my-utils';
+	import { onMount } from 'svelte';
+	import {
+		CPS_PER_LAP,
+		current_cp_count,
+		current_cp_split,
+		current_avg_lap,
+		current_median_lap,
+		est_pace,
+		lap_splits,
+		lap_times,
+		listenToSocket,
+		trick_avg_diff,
+		trick_diff,
+		trick_median_diff,
+		updateScroll
+	} from '$lib/webSocketLogic.js';
 
-	let updateScroll = 0;
+	export let data;
 
-	const CPS_PER_LAP = 8;
-	let lap_times: number[] = [];
-	let lap_splits: number[] = [];
-	let est_pace: number[] = [0];
-	let avg_lap_times: number[] = [];
-	let current_avg_lap = 0;
-	let current_median_lap = 0;
-	let current_lap_split = 0;
-	io.on('lapCompletedResponse', (message) => {
-		lap_times = [...lap_times, message.last_lap_time];
-		current_lap_split += message.last_lap_time;
-		lap_splits = [...lap_splits, current_lap_split];
-
-		// start at 2nd lap:
-		if (currentCPCount > CPS_PER_LAP) {
-			const sum = lap_times.reduce((a, b) => a + b, 0);
-			current_avg_lap = sum / lap_times.length || 0;
-			avg_lap_times = [...avg_lap_times, current_avg_lap];
-			est_pace = [...est_pace, lap_times[0] + 59 * current_avg_lap];
-			current_median_lap = median(lap_times.slice(1)); //omit 1st lap
-		}
-
-		setTimeout(() => {
-			updateScroll++;
-		}, 50);
+	onMount(() => {
+		console.log(data);
+		syncState();
+		listenToSocket('browser');
 	});
 
-	let currentCPSplit = 0;
-	let currentCPCount = 0;
-	let trickStartTime = 0;
-	let trick_diff: number[] = [];
-	let trick_avg_diff = 0;
-	let trick_median_diff = 0;
-	io.on('cpCompletedResponse', (message) => {
-		currentCPSplit = message.current_cp_split;
-		currentCPCount = message.current_cp_count;
-
-		if (currentCPCount % 8 === 5) trickStartTime = currentCPSplit;
-		if (currentCPCount % 8 === 0) {
-			const trickTime = currentCPSplit - trickStartTime;
-			// "This sector without the trick is on average exactly 21 seconds long."
-			const trickDiff = (trickTime - 21000) / 1000;
-			trick_diff.push(trickDiff);
-			console.log('trick diff', trick_diff);
-			const sum = trick_diff.reduce((a, b) => a + b, 0);
-			trick_avg_diff = sum / trick_diff.length || 0;
-			trick_median_diff = median(trick_diff);
-		}
-	});
-
-	io.on('resetResponse', () => {
-		lap_times = [];
-		lap_splits = [];
-		est_pace = [];
-		avg_lap_times = [];
-		current_avg_lap = 0;
-		current_median_lap = 0;
-		current_lap_split = 0;
-		currentCPSplit = 0;
-		currentCPCount = 0;
-		trick_diff = [];
-		trick_avg_diff = 0;
-		trick_median_diff = 0;
-	});
-
-	io.on('eventFromServer', () => console.log('browser: socket connected to server'));
+	function syncState() {
+		current_cp_split.set(data.current_cp_split);
+		current_cp_count.set(data.current_cp_count);
+		current_avg_lap.set(data.current_avg_lap);
+		current_median_lap.set(data.current_median_lap);
+		est_pace.set(data.est_pace);
+		lap_splits.set(data.lap_splits);
+		lap_times.set(data.lap_times);
+		trick_diff.set(data.trick_diff);
+		trick_avg_diff.set(data.trick_avg_diff);
+		trick_median_diff.set(data.trick_median_diff);
+	}
 
 	let placeholder = [
 		56890, 53400, 53690, 53810, 53210, 53000, 54150, 53400, 53690, 53810, 53210, 53000, 54150,
@@ -102,8 +70,8 @@
 		)(0)
 	);
 	let test = false;
-	$: display_times = test ? placeholder : lap_times;
-	$: display_splits = test ? placeholder_splits : lap_splits;
+	$: display_times = test ? placeholder : $lap_times;
+	$: display_splits = test ? placeholder_splits : $lap_splits;
 
 	let comparison = 'tween';
 </script>
@@ -111,7 +79,7 @@
 <div class="flex flex-row gap-8">
 	<div
 		class="relative mt-[48px] max-h-[369px] min-w-max overflow-y-scroll"
-		use:scrollToBottom={updateScroll}
+		use:scrollToBottom={$updateScroll}
 	>
 		<Table.Root>
 			<Table.Header class="fixed -translate-y-[48px]">
@@ -160,14 +128,14 @@
 							</div>
 						</Table.Cell>
 						<Table.Cell class="w-24 p-2">
-							{#if trick_diff[i]}
-								<span class={trick_diff[i] > 0 ? 'text-red-600' : 'text-blue-500'}>
-									{`${trick_diff[i] > 0 ? '+' : ''}${trick_diff[i].toFixed(2)}`}
+							{#if $trick_diff[i]}
+								<span class={$trick_diff[i] > 0 ? 'text-red-600' : 'text-blue-500'}>
+									{`${$trick_diff[i] > 0 ? '+' : ''}${$trick_diff[i].toFixed(2)}`}
 								</span>
 							{/if}
 						</Table.Cell>
 						<Table.Cell class="w-[120px] p-2 text-right">
-							{est_pace[i] > 0 ? formatTime(est_pace[i] / 1000, false) : '-'}
+							{$est_pace[i] > 0 ? formatTime($est_pace[i] / 1000, false) : '-'}
 						</Table.Cell>
 					</Table.Row>
 				{:else}
@@ -194,7 +162,8 @@
 					</span>
 
 					<Badge>
-						Lap {1 + Math.floor(currentCPCount / CPS_PER_LAP)} | CP {currentCPCount % CPS_PER_LAP}
+						Lap {1 + Math.floor($current_cp_count / CPS_PER_LAP)} | CP {$current_cp_count %
+							CPS_PER_LAP}
 					</Badge>
 				</Card.Title>
 				<Card.Description>See various stats about the current run.</Card.Description>
@@ -203,39 +172,39 @@
 				<div>
 					<span>Current Split</span>
 					<span class="float-right">
-						{currentCPSplit > 0 ? formatTime(currentCPSplit / 1000, true) : '-'}
+						{$current_cp_split > 0 ? formatTime($current_cp_split / 1000, true) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Current Pace</span>
 					<span class="float-right">
-						{est_pace.length > 0 && est_pace[est_pace.length - 1]
-							? formatTime(est_pace[est_pace.length - 1] / 1000, true)
+						{$est_pace.length > 0 && $est_pace[$est_pace.length - 1]
+							? formatTime($est_pace[$est_pace.length - 1] / 1000, true)
 							: '-'}
 					</span>
 				</div>
 				<div>
 					<span>Average Lap</span>
 					<span class="float-right">
-						{current_avg_lap > 0 ? (current_avg_lap / 1000).toFixed(2) : '-'}
+						{$current_avg_lap > 0 ? ($current_avg_lap / 1000).toFixed(2) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Median Lap</span>
 					<span class="float-right">
-						{current_median_lap > 0 ? (current_median_lap / 1000).toFixed(2) : '-'}
+						{$current_median_lap > 0 ? ($current_median_lap / 1000).toFixed(2) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Average Trick Save</span>
 					<span class="float-right">
-						{trick_avg_diff > 0 ? trick_avg_diff.toFixed(2) : '-'}
+						{$trick_avg_diff > 0 ? $trick_avg_diff.toFixed(2) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Median Trick Save</span>
 					<span class="float-right">
-						{trick_median_diff > 0 ? trick_median_diff.toFixed(2) : '-'}
+						{$trick_median_diff > 0 ? $trick_median_diff.toFixed(2) : '-'}
 					</span>
 				</div>
 			</Card.Content>

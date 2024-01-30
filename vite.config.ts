@@ -1,9 +1,9 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
-/* import { type ViteDevServer } from 'vite';
-import { Server } from 'socket.io'; */
+import { type ViteDevServer } from 'vite';
+import { Server } from 'socket.io';
 
-/* const webSocketServer = {
+const webSocketServer = {
 	name: 'webSocketServer',
 	configureServer(server: ViteDevServer) {
 		if (!server.httpServer) return;
@@ -26,10 +26,10 @@ import { Server } from 'socket.io'; */
 			});
 		});
 	}
-}; */
+};
 
 export default defineConfig({
-	plugins: [sveltekit() /* , webSocketServer */],
+	plugins: [sveltekit(), webSocketServer],
 	server: {
 		port: 5173
 	}
