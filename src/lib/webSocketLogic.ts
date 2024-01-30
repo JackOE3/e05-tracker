@@ -1,6 +1,7 @@
 import { io } from '$lib/webSocketConnection.js';
 import { get, writable } from 'svelte/store';
 import { median } from './my-utils';
+import { dev } from '$app/environment';
 
 export const updateScroll = writable(0);
 
@@ -26,6 +27,9 @@ export function listenToSocket(client: string) {
 		console.log(`${client} already connected`);
 		return;
 	}
+	io.on('loadData', (message) => {
+		console.log(`loadData: ${message}`);
+	});
 
 	io.on('cpCompletedResponse', (message) => {
 		//console.log(`${client}: webSocketLogic cpCompletedResponse`);
@@ -63,7 +67,7 @@ export function listenToSocket(client: string) {
 		}, 50);
 	});
 	io.on('resetResponse', () => {
-		console.log('RESET');
+		if (dev) console.log('RESET');
 		current_cp_count.set(0);
 		current_cp_split.set(0);
 		lap_times.set([]);
