@@ -28,7 +28,7 @@ export function listenToSocket(client: string) {
 		return;
 	}
 	io.on('loadData', (message) => {
-		console.log(`loadData: ${message}`);
+		console.log(`loadData: ${message.current_cp_count}`);
 	});
 
 	io.on('cpCompletedResponse', (message) => {
