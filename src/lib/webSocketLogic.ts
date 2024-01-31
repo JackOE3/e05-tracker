@@ -26,7 +26,7 @@ export function listenToSocket(client: string) {
 		return;
 	}
 	io.on('loadData', (message) => {
-		if (dev) console.log('loadData', message);
+		console.log('loadData', message);
 		lap_times.set(message.lap_times);
 		lap_splits.set(message.lap_splits);
 		est_pace.set(message.est_pace);
