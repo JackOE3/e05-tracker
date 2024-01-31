@@ -128,12 +128,12 @@
 						</Table.Row>
 					{:else}
 						<Table.Row>
-							<Table.Cell class="p-2 font-medium">1</Table.Cell>
-							<Table.Cell class="p-2">-</Table.Cell>
-							<Table.Cell class="p-2">-</Table.Cell>
-							<Table.Cell class="p-2">-</Table.Cell>
-							<Table.Cell class="p-2">-</Table.Cell>
-							<Table.Cell class="p-2">-</Table.Cell>
+							<Table.Cell class="w-12 p-2 font-medium">1</Table.Cell>
+							<Table.Cell class="w-24 p-2">-</Table.Cell>
+							<Table.Cell class="w-24 p-2">-</Table.Cell>
+							<Table.Cell class="w-24 p-2">-</Table.Cell>
+							<Table.Cell class="w-24 p-2">-</Table.Cell>
+							<Table.Cell class="w-24 p-2">-</Table.Cell>
 						</Table.Row>
 					{/each}
 				</Table.Body>
