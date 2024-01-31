@@ -1,5 +1,5 @@
 import { io } from '$lib/webSocketConnection.js';
-import { derived, writable } from 'svelte/store';
+import { derived, get, writable } from 'svelte/store';
 import { dev } from '$app/environment';
 
 export const updateScroll = writable(0);
@@ -26,7 +26,7 @@ export function listenToSocket(client: string) {
 		return;
 	}
 	io.on('loadData', (message) => {
-		console.log('loadData', message);
+		if (dev) console.log('loadData', message);
 		lap_times.set(message.lap_times);
 		lap_splits.set(message.lap_splits);
 		est_pace.set(message.est_pace);
@@ -84,9 +84,5 @@ export function listenToSocket(client: string) {
 	io.on('connect', () => console.log('connected to socket'));
 	io.on('disconnect', (reason) => {
 		console.log('disconnected from socket. reason:', reason);
-	});
-
-	io.on('pythonConnectedResponse', () => {
-		console.log('python client connected');
 	});
 }

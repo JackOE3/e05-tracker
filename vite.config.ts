@@ -46,8 +46,8 @@ const webSocketServer = {
 		io.on('connection', (socket) => {
 			socket.emit('eventFromServer', 'Hello, World 👋');
 			console.log('id:', socket.id);
-
 			socket.emit('loadData', stats);
+
 			//console.log("CONNECTED");
 
 			socket.on('cpCompleted', (message) => {

@@ -38,6 +38,9 @@
 
 	onMount(() => {
 		listenToSocket('browser');
+		setTimeout(() => {
+			$updateScroll++;
+		}, 200);
 	});
 
 	let placeholder = [
