@@ -66,6 +66,10 @@
 	let showMore = false;
 </script>
 
+<svelte:head>
+	<title>E05-Tracker</title>
+</svelte:head>
+
 <div class="flex flex-col gap-12 lg:flex-row">
 	<div class="min-w-[500px]">
 		<Table.Header class="text-sm">
