@@ -3,6 +3,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Button } from '$lib/components/ui/button';
+	import { Separator } from '$lib/components/ui/separator';
 	import { lapSplits } from '$lib/stats';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
@@ -34,11 +35,9 @@
 		updateScroll,
 		current_est_pace
 	} from '$lib/webSocketLogic.js';
-
-	export let data;
+	import { slide } from 'svelte/transition';
 
 	onMount(() => {
-		console.log(data);
 		listenToSocket('browser');
 	});
 
@@ -61,11 +60,12 @@
 	$: display_splits = test ? placeholder_splits : $lap_splits;
 
 	let comparison = 'tween';
+	let showMore = false;
 </script>
 
-<div class="flex flex-row gap-8">
+<div class="flex flex-row gap-12">
 	<div
-		class="relative mt-[48px] max-h-[369px] min-w-max overflow-y-scroll"
+		class="relative mt-[48px] h-[369px] min-w-max overflow-y-scroll"
 		use:scrollToBottom={$updateScroll}
 	>
 		<Table.Root>
@@ -139,7 +139,7 @@
 		</Table.Root>
 	</div>
 
-	<div class="min-w-max self-center">
+	<div class="min-w-max self-start">
 		<Card.Root class="w-[350px]">
 			<Card.Header>
 				<Card.Title class="flex flex-row place-content-between items-center">
@@ -158,40 +158,45 @@
 			<Card.Content>
 				<div>
 					<span>Current Split</span>
-					<span class="float-right">
+					<span class="float-right font-mono">
 						{$current_cp_split ? formatTime($current_cp_split / 1000, true) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Current Pace</span>
-					<span class="float-right">
+					<span class="float-right font-mono">
 						{$current_est_pace ? formatTime($current_est_pace / 1000, true) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Average Lap</span>
-					<span class="float-right">
+					<span class="float-right font-mono">
 						{$current_avg_lap ? ($current_avg_lap / 1000).toFixed(2) : '-'}
 					</span>
 				</div>
-				<div>
-					<span>Median Lap</span>
-					<span class="float-right">
-						{$current_median_lap ? ($current_median_lap / 1000).toFixed(2) : '-'}
-					</span>
-				</div>
-				<div>
-					<span>Average Trick Save</span>
-					<span class="float-right">
-						{$trick_avg_diff ? $trick_avg_diff.toFixed(2) : '-'}
-					</span>
-				</div>
-				<div>
-					<span>Median Trick Save</span>
-					<span class="float-right">
-						{$trick_median_diff ? $trick_median_diff.toFixed(2) : '-'}
-					</span>
-				</div>
+
+				{#if showMore}
+					<div transition:slide={{ duration: 500 }}>
+						<div>
+							<span>Median Lap</span>
+							<span class="float-right font-mono">
+								{$current_median_lap ? ($current_median_lap / 1000).toFixed(2) : '-'}
+							</span>
+						</div>
+						<div>
+							<span>Average Trick Save</span>
+							<span class="float-right font-mono">
+								{$trick_avg_diff ? $trick_avg_diff.toFixed(2) : '-'}
+							</span>
+						</div>
+						<div>
+							<span>Median Trick Save</span>
+							<span class="float-right font-mono">
+								{$trick_median_diff ? $trick_median_diff.toFixed(2) : '-'}
+							</span>
+						</div>
+					</div>
+				{/if}
 			</Card.Content>
 			<Card.Footer class="flex justify-between">
 				<DropdownMenu.Root>
@@ -208,7 +213,13 @@
 						</DropdownMenu.RadioGroup>
 					</DropdownMenu.Content>
 				</DropdownMenu.Root>
-				<Button>Show More</Button>
+				<Button on:click={() => (showMore = !showMore)}>
+					{#if showMore}
+						Show Less
+					{:else}
+						Show More
+					{/if}
+				</Button>
 			</Card.Footer>
 		</Card.Root>
 	</div>

@@ -13,7 +13,6 @@ export const current_est_pace = derived(est_pace, ($est_pace) => $est_pace[$est_
 export const avg_lap_times = writable<number[]>([]);
 export const current_avg_lap = writable<undefined | number>(undefined);
 export const current_median_lap = writable<undefined | number>(undefined);
-export const current_lap_split = writable<undefined | number>(undefined);
 
 export const current_cp_split = writable<undefined | number>(undefined);
 export const current_cp_count = writable(0);
@@ -27,18 +26,29 @@ export function listenToSocket(client: string) {
 		return;
 	}
 	io.on('loadData', (message) => {
-		console.log('loadData', message);
+		if (dev) console.log('loadData', message);
+		lap_times.set(message.lap_times);
+		lap_splits.set(message.lap_splits);
+		est_pace.set(message.est_pace);
+		avg_lap_times.set(message.avg_lap_times);
+		current_avg_lap.set(message.current_avg_lap);
+		current_median_lap.set(message.current_median_lap);
+		current_cp_split.set(message.current_cp_split);
+		current_cp_count.set(message.current_cp_count);
+		trick_diff.set(message.trick_diff);
+		trick_avg_diff.set(message.trick_avg_diff);
+		trick_median_diff.set(message.trick_median_diff);
 	});
 
 	io.on('cpCompletedResponse', (message) => {
-		console.log('cpCompletedResponse');
+		if (dev) console.log('cpCompletedResponse');
 		//console.log(`${client}: webSocketLogic cpCompletedResponse`);
 		current_cp_split.set(message.current_cp_split);
 		current_cp_count.set(message.current_cp_count);
 	});
 
 	io.on('lapStats', (message) => {
-		console.log('lapStats');
+		if (dev) console.log('lapStats');
 		lap_times.update((times) => [...times, message.current_lap_time]);
 		lap_splits.update((splits) => [...splits, message.current_lap_split]);
 		trick_diff.update((arr) => [...arr, message.current_trick_diff]);
@@ -51,14 +61,14 @@ export function listenToSocket(client: string) {
 	});
 
 	io.on('lapStatsExtra', (message) => {
-		console.log('lapStatsExtra', message.current_median_lap);
+		if (dev) console.log('lapStatsExtra');
 		current_avg_lap.set(message.current_avg_lap);
 		current_median_lap.set(message.current_median_lap);
 		est_pace.update((pace) => [...pace, message.current_est_pace]);
 	});
 
 	io.on('resetResponse', () => {
-		console.log('resetResponse');
+		if (dev) console.log('resetResponse');
 		current_cp_count.set(0);
 		current_cp_split.set(undefined);
 		lap_times.set([]);
@@ -67,13 +77,12 @@ export function listenToSocket(client: string) {
 		avg_lap_times.set([]);
 		current_avg_lap.set(undefined);
 		current_median_lap.set(undefined);
-		current_lap_split.set(undefined);
 		trick_diff.set([]);
 		trick_avg_diff.set(undefined);
 		trick_median_diff.set(undefined);
 	});
 	io.on('connect', () => console.log('connected to socket'));
 	io.on('disconnect', (reason) => {
-		console.log('disconnected to socket. reason:', reason);
+		console.log('disconnected from socket. reason:', reason);
 	});
 }
