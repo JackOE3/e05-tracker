@@ -12,10 +12,13 @@ export function median(values: number[]): number {
 	return values.length % 2 ? values[half] : (values[half - 1] + values[half]) / 2;
 }
 
-export const formatTime = (seconds: number, hundredths = false) => {
-	if (isNaN(seconds)) return 0;
-	const t = new Date(1000 * seconds);
-	let time = `${t.getMinutes().toString().padStart(2, '0')}:${t.getSeconds().toString().padStart(2, '0')}`;
+export const formatTime = (millis: number, hundredths = false) => {
+	if (isNaN(millis)) return 0;
+	const t = new Date(1000 * millis);
+	let time = '';
+	if (t.getMinutes() >= 1)
+		time = `${t.getMinutes().toString()}:${t.getSeconds().toString().padStart(2, '0')}`;
+	else time = `${t.getSeconds().toString()}`;
 	if (hundredths) time += `${(t.getMilliseconds() / 1000).toFixed(2).slice(1)}`;
 	return time;
 };

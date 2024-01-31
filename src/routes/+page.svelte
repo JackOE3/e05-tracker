@@ -35,6 +35,7 @@
 		current_est_pace
 	} from '$lib/webSocketLogic.js';
 	import { slide } from 'svelte/transition';
+	import { Separator } from '$lib/components/ui/separator';
 
 	onMount(() => {
 		listenToSocket('browser');
@@ -66,82 +67,81 @@
 </script>
 
 <div class="flex flex-col gap-12 lg:flex-row">
-	<div
-		class="relative mt-[48px] h-[369px] min-w-max overflow-y-scroll"
-		use:scrollToBottom={$updateScroll}
-	>
-		<Table.Root>
-			<Table.Header class="fixed -translate-y-[48px]">
-				<Table.Row>
-					<Table.Head class="w-16 p-2">
-						<span class="flex flex-row items-center gap-1">Lap</span>
-					</Table.Head>
-					<Table.Head class="w-24 p-2">
-						<span class="flex flex-row items-center gap-1"><Timer size="1rem" />Split</span>
-					</Table.Head>
-					<Table.Head class="w-24 p-2">
-						<span class="flex flex-row items-center gap-1"><Clock size="1rem" />RTA</span>
-					</Table.Head>
-					<Table.Head class="w-24 p-2">
-						<span class="flex flex-row items-center gap-1"><Diff size="1rem" />Diff</span>
-					</Table.Head>
-					<Table.Head class="w-24 p-2">
-						<span class="flex flex-row items-center gap-1"><Zap size="1rem" />Trick</span>
-					</Table.Head>
-					<Table.Head class="w-[120px] p-2 text-right">
-						<span class="flex flex-row items-center gap-1"><TrendingUp size="1rem" />Est. Pace</span
-						>
-					</Table.Head>
-				</Table.Row>
-			</Table.Header>
-			<Table.Body class="h-0 font-mono">
-				{#each display_times as lap_time, i}
-					<Table.Row>
-						<Table.Cell class="w-16 p-2 font-medium">{i + 1}</Table.Cell>
-						<Table.Cell class="w-24 p-2">{(lap_time / 1000).toFixed(2)}</Table.Cell>
-						<Table.Cell class="w-24 p-2">{formatTime(display_splits[i] / 1000)}</Table.Cell>
-						<Table.Cell class="w-24 p-2">
-							<div class="flex flex-row items-center justify-start gap-1">
-								<span
-									class={display_splits[i] / 1000 - lapSplits[comparison][i] > 0
-										? 'text-red-600'
-										: 'text-blue-500'}
-								>
-									{`${display_splits[i] / 1000 - lapSplits[comparison][i] > 0 ? '+' : ''}${(display_splits[i] / 1000 - lapSplits[comparison][i]).toFixed(2)}`}
-								</span>
-								{#if i > 0 && display_splits[i] / 1000 - lapSplits[comparison][i] > display_splits[i - 1] / 1000 - lapSplits[comparison][i - 1]}
-									<ChevronUp color="rgb(249 115 22)" size="1rem" />
-								{:else if i > 0}
-									<ChevronDown color="rgb(34 197 94)" size="1rem" />
+	<div class="min-w-[500px]">
+		<Table.Header class="text-sm">
+			<Table.Row>
+				<Table.Head class="w-12 p-2">
+					<span class="flex flex-row items-center gap-1">Lap</span>
+				</Table.Head>
+				<Table.Head class="w-24 p-2">
+					<span class="flex flex-row items-center gap-1"><Timer size="1rem" />Time</span>
+				</Table.Head>
+				<Table.Head class="w-24 p-2">
+					<span class="flex flex-row items-center gap-1"><Clock size="1rem" />RTA</span>
+				</Table.Head>
+				<Table.Head class="w-24 p-2">
+					<span class="flex flex-row items-center gap-1"><Diff size="1rem" />Diff</span>
+				</Table.Head>
+				<Table.Head class="w-24 p-2">
+					<span class="flex flex-row items-center gap-1"><Zap size="1rem" />Trick</span>
+				</Table.Head>
+				<Table.Head class="w-24 p-2">
+					<span class="flex flex-row items-center gap-1"><TrendingUp size="1rem" />Pace</span>
+				</Table.Head>
+			</Table.Row>
+		</Table.Header>
+		<Separator />
+		<div class="relative h-[369px] overflow-y-scroll" use:scrollToBottom={$updateScroll}>
+			<Table.Root>
+				<Table.Body class="h-0 font-mono">
+					{#each display_times as lap_time, i}
+						<Table.Row>
+							<Table.Cell class="w-12 p-2 font-medium">{i + 1}</Table.Cell>
+							<Table.Cell class="w-24 p-2">{formatTime(lap_time / 1000, true)}</Table.Cell>
+							<Table.Cell class="w-24 p-2">{formatTime(display_splits[i] / 1000, true)}</Table.Cell>
+							<Table.Cell class="w-24 p-2">
+								<div class="flex flex-row items-center justify-start gap-0">
+									<span
+										class={display_splits[i] / 1000 - lapSplits[comparison][i] > 0
+											? 'text-red-600'
+											: 'text-blue-500'}
+									>
+										{`${display_splits[i] / 1000 - lapSplits[comparison][i] > 0 ? '+' : '-'}${formatTime(Math.abs(display_splits[i] / 1000 - lapSplits[comparison][i]), true)}`}
+									</span>
+									{#if i > 0 && display_splits[i] / 1000 - lapSplits[comparison][i] > display_splits[i - 1] / 1000 - lapSplits[comparison][i - 1]}
+										<ChevronUp color="rgb(249 115 22)" size="1rem" />
+									{:else if i > 0}
+										<ChevronDown color="rgb(34 197 94)" size="1rem" />
+									{/if}
+								</div>
+							</Table.Cell>
+							<Table.Cell class="w-24 p-2">
+								{#if $trick_diff[i]}
+									<span class={$trick_diff[i] > 0 ? 'text-red-600' : 'text-blue-500'}>
+										{`${$trick_diff[i] > 0 ? '+' : '-'}${formatTime(Math.abs($trick_diff[i]), true)}`}
+									</span>
 								{/if}
-							</div>
-						</Table.Cell>
-						<Table.Cell class="w-24 p-2">
-							{#if $trick_diff[i]}
-								<span class={$trick_diff[i] > 0 ? 'text-red-600' : 'text-blue-500'}>
-									{`${$trick_diff[i] > 0 ? '+' : ''}${$trick_diff[i].toFixed(2)}`}
-								</span>
-							{/if}
-						</Table.Cell>
-						<Table.Cell class="w-[120px] p-2 text-right">
-							{$est_pace[i] ? formatTime($est_pace[i] / 1000, false) : '-'}
-						</Table.Cell>
-					</Table.Row>
-				{:else}
-					<Table.Row>
-						<Table.Cell class="w-16 p-2 font-medium">1</Table.Cell>
-						<Table.Cell class="w-24 p-2">-</Table.Cell>
-						<Table.Cell class="w-24 p-2">-</Table.Cell>
-						<Table.Cell class="w-24 p-2">-</Table.Cell>
-						<Table.Cell class="w-24 p-2">-</Table.Cell>
-						<Table.Cell class="w-[120px] p-2 text-right">-</Table.Cell>
-					</Table.Row>
-				{/each}
-			</Table.Body>
-		</Table.Root>
+							</Table.Cell>
+							<Table.Cell class="w-24 p-2">
+								{$est_pace[i] ? formatTime($est_pace[i] / 1000, true) : '-'}
+							</Table.Cell>
+						</Table.Row>
+					{:else}
+						<Table.Row>
+							<Table.Cell class="p-2 font-medium">1</Table.Cell>
+							<Table.Cell class="p-2">-</Table.Cell>
+							<Table.Cell class="p-2">-</Table.Cell>
+							<Table.Cell class="p-2">-</Table.Cell>
+							<Table.Cell class="p-2">-</Table.Cell>
+							<Table.Cell class="p-2">-</Table.Cell>
+						</Table.Row>
+					{/each}
+				</Table.Body>
+			</Table.Root>
+		</div>
 	</div>
 
-	<div class="order-first min-w-max self-center lg:order-last lg:self-start">
+	<div class="order-first min-w-max self-center lg:order-1 lg:self-start">
 		<Card.Root class="w-[350px]">
 			<Card.Header>
 				<Card.Title class="flex flex-row place-content-between items-center">
@@ -186,13 +186,13 @@
 							</span>
 						</div>
 						<div>
-							<span>Average Trick Save</span>
+							<span>Average Trick Diff</span>
 							<span class="float-right font-mono">
 								{$trick_avg_diff ? $trick_avg_diff.toFixed(2) : '-'}
 							</span>
 						</div>
 						<div>
-							<span>Median Trick Save</span>
+							<span>Median Trick Diff</span>
 							<span class="float-right font-mono">
 								{$trick_median_diff ? $trick_median_diff.toFixed(2) : '-'}
 							</span>
