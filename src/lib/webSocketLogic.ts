@@ -85,4 +85,8 @@ export function listenToSocket(client: string) {
 	io.on('disconnect', (reason) => {
 		console.log('disconnected from socket. reason:', reason);
 	});
+
+	io.on('pythonConnectedResponse', () => {
+		console.log('python client connected');
+	});
 }

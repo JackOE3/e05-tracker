@@ -3,7 +3,6 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
 	import { lapSplits } from '$lib/stats';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
