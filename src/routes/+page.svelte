@@ -41,7 +41,7 @@
 		listenToSocket('browser');
 		setTimeout(() => {
 			$updateScroll++;
-		}, 200);
+		}, 2000);
 	});
 
 	let placeholder = [
