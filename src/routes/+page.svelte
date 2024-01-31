@@ -63,7 +63,7 @@
 	let showMore = false;
 </script>
 
-<div class="flex flex-row gap-12">
+<div class="flex flex-col gap-12 lg:flex-row">
 	<div
 		class="relative mt-[48px] h-[369px] min-w-max overflow-y-scroll"
 		use:scrollToBottom={$updateScroll}
@@ -139,7 +139,7 @@
 		</Table.Root>
 	</div>
 
-	<div class="min-w-max self-start">
+	<div class="order-first min-w-max self-center lg:order-last lg:self-start">
 		<Card.Root class="w-[350px]">
 			<Card.Header>
 				<Card.Title class="flex flex-row place-content-between items-center">
