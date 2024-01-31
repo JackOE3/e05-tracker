@@ -12,11 +12,12 @@ const webSocketServer = {
 
 		io.on('connection', (socket) => {
 			socket.emit('eventFromServer', 'Hello, World 👋');
-
+			console.log('id:', socket.id);
 			socket.on('lapCompleted', (message) => {
 				//console.log('data received:', message);
 				io.emit('lapCompletedResponse', message);
 			});
+
 			socket.on('cpCompleted', (message) => {
 				//console.log('data received:', message);
 				io.emit('cpCompletedResponse', message);
