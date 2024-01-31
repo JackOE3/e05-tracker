@@ -31,29 +31,16 @@
 		trick_avg_diff,
 		trick_diff,
 		trick_median_diff,
-		updateScroll
+		updateScroll,
+		current_est_pace
 	} from '$lib/webSocketLogic.js';
 
 	export let data;
 
 	onMount(() => {
 		console.log(data);
-		syncState();
 		listenToSocket('browser');
 	});
-
-	function syncState() {
-		current_cp_split.set(data.current_cp_split);
-		current_cp_count.set(data.current_cp_count);
-		current_avg_lap.set(data.current_avg_lap);
-		current_median_lap.set(data.current_median_lap);
-		est_pace.set(data.est_pace);
-		lap_splits.set(data.lap_splits);
-		lap_times.set(data.lap_times);
-		trick_diff.set(data.trick_diff);
-		trick_avg_diff.set(data.trick_avg_diff);
-		trick_median_diff.set(data.trick_median_diff);
-	}
 
 	let placeholder = [
 		56890, 53400, 53690, 53810, 53210, 53000, 54150, 53400, 53690, 53810, 53210, 53000, 54150,
@@ -135,7 +122,7 @@
 							{/if}
 						</Table.Cell>
 						<Table.Cell class="w-[120px] p-2 text-right">
-							{$est_pace[i] > 0 ? formatTime($est_pace[i] / 1000, false) : '-'}
+							{$est_pace[i] ? formatTime($est_pace[i] / 1000, false) : '-'}
 						</Table.Cell>
 					</Table.Row>
 				{:else}
@@ -172,39 +159,37 @@
 				<div>
 					<span>Current Split</span>
 					<span class="float-right">
-						{$current_cp_split > 0 ? formatTime($current_cp_split / 1000, true) : '-'}
+						{$current_cp_split ? formatTime($current_cp_split / 1000, true) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Current Pace</span>
 					<span class="float-right">
-						{$est_pace.length > 0 && $est_pace[$est_pace.length - 1]
-							? formatTime($est_pace[$est_pace.length - 1] / 1000, true)
-							: '-'}
+						{$current_est_pace ? formatTime($current_est_pace / 1000, true) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Average Lap</span>
 					<span class="float-right">
-						{$current_avg_lap > 0 ? ($current_avg_lap / 1000).toFixed(2) : '-'}
+						{$current_avg_lap ? ($current_avg_lap / 1000).toFixed(2) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Median Lap</span>
 					<span class="float-right">
-						{$current_median_lap > 0 ? ($current_median_lap / 1000).toFixed(2) : '-'}
+						{$current_median_lap ? ($current_median_lap / 1000).toFixed(2) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Average Trick Save</span>
 					<span class="float-right">
-						{$trick_avg_diff > 0 ? $trick_avg_diff.toFixed(2) : '-'}
+						{$trick_avg_diff ? $trick_avg_diff.toFixed(2) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Median Trick Save</span>
 					<span class="float-right">
-						{$trick_median_diff > 0 ? $trick_median_diff.toFixed(2) : '-'}
+						{$trick_median_diff ? $trick_median_diff.toFixed(2) : '-'}
 					</span>
 				</div>
 			</Card.Content>
