@@ -3,7 +3,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Button } from '$lib/components/ui/button';
-	import { lapSplits, CPS_PER_LAP } from '$lib/stats';
+	import { lapSplits, CPS_PER_LAP, playerComparisons } from '$lib/stats';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
 		ChevronUp,
@@ -221,9 +221,21 @@
 						<DropdownMenu.Label>Comparing against</DropdownMenu.Label>
 						<DropdownMenu.Separator />
 						<DropdownMenu.RadioGroup bind:value={comparison}>
-							<DropdownMenu.RadioItem value="tween">Tween (WR)</DropdownMenu.RadioItem>
-							<DropdownMenu.RadioItem value="demon">Demon</DropdownMenu.RadioItem>
-							<DropdownMenu.RadioItem value="rollin">Rollin</DropdownMenu.RadioItem>
+							{#each playerComparisons as playerComp}
+								<DropdownMenu.RadioItem
+									value={playerComp.value}
+									class="flex flex-row place-content-between"
+								>
+									<span>
+										{playerComp.label}
+										{#if playerComp.label === 'Tween'}
+											<Badge class="ml-1 font-bold text-yellow-200" variant="outline">WR</Badge>
+										{/if}
+									</span>
+
+									<span class="ml-2 font-mono"> {playerComp.time} </span>
+								</DropdownMenu.RadioItem>
+							{/each}
 						</DropdownMenu.RadioGroup>
 					</DropdownMenu.Content>
 				</DropdownMenu.Root>

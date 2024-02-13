@@ -46,6 +46,12 @@ export const lapSplits: { [key: string]: Array<number> } = {
 	)
 };
 
+export const playerComparisons: Array<{ time: string; label: string; value: string }> = [
+	{ time: '53:25.28', label: 'Tween', value: 'tween' },
+	{ time: '53:25.55', label: 'Demon', value: 'demon' },
+	{ time: '53:32.87', label: 'Rollin', value: 'rollin' }
+];
+
 export const CPS_PER_LAP = 8;
 
 type Stats = {
