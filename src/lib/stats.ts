@@ -81,7 +81,7 @@ export const statsInit: Stats = {
 	trick_median_diff: undefined
 };
 
-export const players = ['Rollin', 'Demon', 'JaV'] as const;
+export const players = ['Rollin', 'Demon', 'JaV', 'RotakeR'] as const;
 export type Player = (typeof players)[number];
 export type PlayerStats = {
 	[key in Player]: Stats;
@@ -89,12 +89,14 @@ export type PlayerStats = {
 export const playerStats: PlayerStats = {
 	Rollin: deepClone(statsInit),
 	JaV: deepClone(statsInit),
-	Demon: deepClone(statsInit)
+	Demon: deepClone(statsInit),
+	RotakeR: deepClone(statsInit)
 };
 export const connected = writable<{ [key in Player]: boolean }>({
 	Rollin: false,
 	Demon: false,
-	JaV: false
+	JaV: false,
+	RotakeR: false
 });
 
 export function isPlayer(player: string): boolean {

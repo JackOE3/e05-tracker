@@ -21,6 +21,7 @@ export function listenToSocket(client: string) {
 		if (get(connected).Rollin) selectedPlayer.set('Rollin');
 		else if (get(connected).Demon) selectedPlayer.set('Demon');
 		else if (get(connected).JaV) selectedPlayer.set('JaV');
+		else if (get(connected).RotakeR) selectedPlayer.set('RotakeR');
 	});
 	io.on('playerConnected', (player: Player) => {
 		connected.update(($connected) => {
