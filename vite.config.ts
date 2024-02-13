@@ -40,10 +40,11 @@ export type Player = (typeof players)[number];
 export type PlayerStats = {
 	[key in Player]: Stats;
 };
+const deepClone = (obj: object) => JSON.parse(JSON.stringify(obj));
 export const playerStats: PlayerStats = {
-	rollin: { ...statsInit },
-	jav: { ...statsInit },
-	demon: { ...statsInit }
+	rollin: deepClone(statsInit),
+	jav: deepClone(statsInit),
+	demon: deepClone(statsInit)
 };
 
 function median(values: number[]): number {
@@ -59,6 +60,7 @@ function median(values: number[]): number {
 	return values.length % 2 ? values[half] : (values[half - 1] + values[half]) / 2;
 }
 
+const player = players[0];
 const webSocketServer = {
 	name: 'webSocketServer',
 	configureServer(server: ViteDevServer) {
@@ -67,13 +69,12 @@ const webSocketServer = {
 		const io = new Server(server.httpServer);
 
 		io.on('connection', (socket) => {
-			socket.emit('eventFromServer', 'Hello, World 👋');
 			console.log('id:', socket.id);
 			socket.emit('loadData', playerStats);
 
 			socket.on('cpCompleted', (message) => {
-				io.emit('cpCompletedResponse', message);
-				const stats = playerStats['rollin'];
+				io.emit('cpCompletedResponse', { player, ...message });
+				const stats = playerStats[player];
 
 				stats.current_cp_count = message.current_cp_count;
 				stats.current_cp_split = message.current_cp_split;
@@ -98,6 +99,7 @@ const webSocketServer = {
 					stats.lap_splits.push(stats.current_cp_split!);
 
 					io.emit('lapStats', {
+						player,
 						current_lap,
 						current_lap_time,
 						current_lap_split: stats.current_cp_split,
@@ -116,6 +118,7 @@ const webSocketServer = {
 							stats.current_median_lap = median(stats.lap_times.slice(1));
 
 						io.emit('lapStatsExtra', {
+							player,
 							current_avg_lap: stats.current_avg_lap,
 							current_median_lap: stats.current_median_lap,
 							//avg_lap_times,
@@ -126,8 +129,8 @@ const webSocketServer = {
 			});
 
 			socket.on('reset', () => {
-				io.emit('resetResponse');
-				playerStats['rollin'] = { ...statsInit };
+				io.emit('resetResponse', { player });
+				playerStats['rollin'] = deepClone(statsInit);
 			});
 		});
 	}

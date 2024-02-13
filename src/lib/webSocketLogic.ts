@@ -2,6 +2,7 @@ import { io } from '$lib/webSocketConnection.js';
 import { writable } from 'svelte/store';
 import { dev } from '$app/environment';
 import { type Player, type PlayerStats, statsInit, isPlayer, stats } from '$lib/stats';
+import { deepClone } from './my-utils';
 
 export const updateScroll = writable(0);
 
@@ -66,7 +67,7 @@ export function listenToSocket(client: string) {
 		if (!isPlayer(player)) return;
 
 		stats.update(($stats) => {
-			$stats[player] = { ...statsInit };
+			$stats[player] = deepClone(statsInit);
 			return $stats;
 		});
 	});

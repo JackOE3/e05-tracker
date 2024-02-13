@@ -1,4 +1,4 @@
-import { derived, get, writable } from 'svelte/store';
+import { derived, writable } from 'svelte/store';
 import { deepClone } from './my-utils';
 
 export const lapTimes: { [key: string]: Array<number> } = {
@@ -85,9 +85,9 @@ export type PlayerStats = {
 	[key in Player]: Stats;
 };
 export const playerStats: PlayerStats = {
-	rollin: { ...statsInit },
-	jav: { ...statsInit },
-	demon: { ...statsInit }
+	rollin: deepClone(statsInit),
+	jav: deepClone(statsInit),
+	demon: deepClone(statsInit)
 };
 
 export function isPlayer(player: string): boolean {
@@ -98,8 +98,7 @@ export function isPlayer(player: string): boolean {
 
 export const selectedPlayer = writable<Player>('rollin');
 
-export const stats = writable<PlayerStats>(playerStats);
-console.log('STATS:', get(stats)[get(selectedPlayer)]);
+export const stats = writable<PlayerStats>(deepClone(playerStats));
 
 export const current_lap = derived(
 	[stats, selectedPlayer],
