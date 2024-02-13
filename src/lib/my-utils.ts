@@ -29,3 +29,7 @@ export function scrollToBottom(node: HTMLElement, _dependency: unknown): { updat
 	scroll(); // only called once when node is created
 	return { update: scroll };
 }
+
+export const deepClone = (obj: object) => JSON.parse(JSON.stringify(obj));
+
+export const capitalize = (str: string) => str[0].toUpperCase() + str.slice(1);

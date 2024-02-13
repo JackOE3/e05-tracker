@@ -3,7 +3,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Button } from '$lib/components/ui/button';
-	import { lapSplits } from '$lib/stats';
+	import { lapSplits, CPS_PER_LAP } from '$lib/stats';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
 		ChevronUp,
@@ -16,10 +16,11 @@
 		Radio
 	} from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
-	import { formatTime, scrollToBottom } from '$lib/my-utils';
+	import { capitalize, formatTime, scrollToBottom } from '$lib/my-utils';
 	import { onMount } from 'svelte';
+	import { updateScroll, listenToSocket } from '$lib/webSocketLogic.js';
 	import {
-		CPS_PER_LAP,
+		selectedPlayer,
 		current_cp_count,
 		current_cp_split,
 		current_avg_lap,
@@ -27,13 +28,12 @@
 		est_pace,
 		lap_splits,
 		lap_times,
-		listenToSocket,
 		trick_avg_diff,
 		trick_diff,
 		trick_median_diff,
-		updateScroll,
 		current_est_pace
-	} from '$lib/webSocketLogic.js';
+	} from '$lib/stats.js';
+
 	import { slide } from 'svelte/transition';
 	import { Separator } from '$lib/components/ui/separator';
 
@@ -159,7 +159,10 @@
 							CPS_PER_LAP}
 					</Badge>
 				</Card.Title>
-				<Card.Description>See various stats about the current run.</Card.Description>
+				<Card.Description
+					>See various stats about the current run.
+					<br />Player: {capitalize($selectedPlayer)}
+				</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<div>

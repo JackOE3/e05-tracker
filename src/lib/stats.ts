@@ -1,3 +1,6 @@
+import { derived, get, writable } from 'svelte/store';
+import { deepClone } from './my-utils';
+
 export const lapTimes: { [key: string]: Array<number> } = {
 	tween: [
 		56.99, 53.29, 53.39, 53.34, 53.25, 53.42, 54.49, 53.32, 53.04, 53.24, 53.3, 53.26, 53.02, 53.29,
@@ -42,3 +45,120 @@ export const lapSplits: { [key: string]: Array<number> } = {
 		)(0)
 	)
 };
+
+export const CPS_PER_LAP = 8;
+
+type Stats = {
+	current_lap: number;
+	lap_times: number[];
+	lap_splits: number[];
+	est_pace: (number | undefined)[];
+	avg_lap_times: number[];
+	current_avg_lap: number | undefined;
+	current_median_lap: number | undefined;
+
+	current_cp_split: number | undefined;
+	current_cp_count: number;
+	trick_diff: number[];
+	trick_avg_diff: number | undefined;
+	trick_median_diff: number | undefined;
+};
+export const statsInit: Stats = {
+	current_lap: 1,
+	lap_times: [],
+	lap_splits: [],
+	est_pace: [undefined],
+	avg_lap_times: [],
+	current_avg_lap: undefined,
+	current_median_lap: undefined,
+
+	current_cp_split: undefined,
+	current_cp_count: 0,
+	trick_diff: [],
+	trick_avg_diff: undefined,
+	trick_median_diff: undefined
+};
+
+export const players = ['rollin', 'jav', 'demon'] as const;
+export type Player = (typeof players)[number];
+export type PlayerStats = {
+	[key in Player]: Stats;
+};
+export const playerStats: PlayerStats = {
+	rollin: { ...statsInit },
+	jav: { ...statsInit },
+	demon: { ...statsInit }
+};
+
+export function isPlayer(player: string): boolean {
+	if (players.includes(player as Player)) return true;
+	console.log('Error: player not found:', player);
+	return false;
+}
+
+export const selectedPlayer = writable<Player>('rollin');
+
+export const stats = writable<PlayerStats>(playerStats);
+console.log('STATS:', get(stats)[get(selectedPlayer)]);
+
+export const current_lap = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].current_lap
+);
+
+export const lap_times = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].lap_times
+);
+
+export const lap_splits = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].lap_splits
+);
+
+export const est_pace = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].est_pace
+);
+
+export const current_est_pace = derived(est_pace, ($est_pace) => $est_pace[$est_pace.length - 1]);
+
+export const avg_lap_times = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].avg_lap_times
+);
+
+export const current_avg_lap = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].current_avg_lap
+);
+
+export const current_median_lap = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].current_median_lap
+);
+
+export const current_cp_split = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].current_cp_split
+);
+
+export const current_cp_count = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].current_cp_count
+);
+
+export const trick_diff = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].trick_diff
+);
+
+export const trick_avg_diff = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].trick_avg_diff
+);
+
+export const trick_median_diff = derived(
+	[stats, selectedPlayer],
+	([$stats, $selectedPlayer]) => $stats[$selectedPlayer].trick_median_diff
+);

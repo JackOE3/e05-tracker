@@ -3,27 +3,50 @@ import { defineConfig } from 'vite';
 import { type ViteDevServer } from 'vite';
 import { Server } from 'socket.io';
 
-const CPS_PER_LAP = 8;
-
-const stats = {
-	current_lap: 1,
-	lap_times: [],
-	lap_splits: [],
-	est_pace: [0],
-	avg_lap_times: [],
-	current_avg_lap: 0,
-	current_median_lap: 0,
-
-	current_cp_split: 0,
-	current_cp_count: 0,
-	trick_start_time: 0,
-	trick_diff: [],
-	trick_avg_diff: 0,
-	trick_median_diff: 0
-};
+export const CPS_PER_LAP = 8;
 let trick_start_time = 0;
 
-function median(values) {
+type Stats = {
+	lap_times: number[];
+	lap_splits: number[];
+	est_pace: (number | undefined)[];
+	avg_lap_times: number[];
+	current_avg_lap: number | undefined;
+	current_median_lap: number | undefined;
+
+	current_cp_split: number | undefined;
+	current_cp_count: number;
+	trick_diff: number[];
+	trick_avg_diff: number | undefined;
+	trick_median_diff: number | undefined;
+};
+export const statsInit: Stats = {
+	lap_times: [],
+	lap_splits: [],
+	est_pace: [undefined],
+	avg_lap_times: [],
+	current_avg_lap: undefined,
+	current_median_lap: undefined,
+
+	current_cp_split: undefined,
+	current_cp_count: 0,
+	trick_diff: [],
+	trick_avg_diff: undefined,
+	trick_median_diff: undefined
+};
+
+export const players = ['rollin', 'jav', 'demon'] as const;
+export type Player = (typeof players)[number];
+export type PlayerStats = {
+	[key in Player]: Stats;
+};
+export const playerStats: PlayerStats = {
+	rollin: { ...statsInit },
+	jav: { ...statsInit },
+	demon: { ...statsInit }
+};
+
+function median(values: number[]): number {
 	if (values.length === 0) {
 		throw new Error('Input array is empty');
 	}
@@ -46,18 +69,17 @@ const webSocketServer = {
 		io.on('connection', (socket) => {
 			socket.emit('eventFromServer', 'Hello, World 👋');
 			console.log('id:', socket.id);
-			socket.emit('loadData', stats);
-
-			//console.log("CONNECTED");
+			socket.emit('loadData', playerStats);
 
 			socket.on('cpCompleted', (message) => {
 				io.emit('cpCompletedResponse', message);
+				const stats = playerStats['rollin'];
 
 				stats.current_cp_count = message.current_cp_count;
 				stats.current_cp_split = message.current_cp_split;
-				if (stats.current_cp_count % CPS_PER_LAP === 5) trick_start_time = stats.current_cp_split;
-				if (stats.current_cp_count % CPS_PER_LAP === 0) {
-					const trickTime = stats.current_cp_split - trick_start_time;
+				if (stats.current_cp_count % CPS_PER_LAP === 5) trick_start_time = stats.current_cp_split!;
+				if (stats.current_cp_count > 0 && stats.current_cp_count % CPS_PER_LAP === 0) {
+					const trickTime = stats.current_cp_split! - trick_start_time;
 					// "This sector without the trick is on average exactly 21 seconds long."
 					const trickDiff = (trickTime - 21000) / 1000;
 					stats.trick_diff.push(trickDiff);
@@ -66,18 +88,18 @@ const webSocketServer = {
 					stats.trick_avg_diff = sum / stats.trick_diff.length || 0;
 					stats.trick_median_diff = median(stats.trick_diff);
 
-					stats.current_lap = 1 + Math.floor(stats.current_cp_count / CPS_PER_LAP);
+					const current_lap = 1 + Math.floor(stats.current_cp_count / CPS_PER_LAP);
 
 					const previous_lap_split = stats.lap_splits[stats.lap_splits.length - 1];
 					const current_lap_time =
-						stats.current_cp_split - (previous_lap_split ? previous_lap_split : 0);
+						stats.current_cp_split! - (previous_lap_split ? previous_lap_split : 0);
 
 					stats.lap_times.push(current_lap_time);
-					stats.lap_splits.push(stats.current_cp_split);
+					stats.lap_splits.push(stats.current_cp_split!);
 
 					io.emit('lapStats', {
-						current_lap: stats.current_lap,
-						current_lap_time: current_lap_time,
+						current_lap,
+						current_lap_time,
 						current_lap_split: stats.current_cp_split,
 						current_trick_diff: trickDiff,
 						trick_avg_diff: stats.trick_avg_diff,
@@ -92,7 +114,6 @@ const webSocketServer = {
 						stats.est_pace.push(current_est_pace);
 						if (stats.lap_times.length >= 3)
 							stats.current_median_lap = median(stats.lap_times.slice(1));
-						else stats.current_median_lap = undefined;
 
 						io.emit('lapStatsExtra', {
 							current_avg_lap: stats.current_avg_lap,
@@ -106,19 +127,7 @@ const webSocketServer = {
 
 			socket.on('reset', () => {
 				io.emit('resetResponse');
-				stats.current_cp_count = 0;
-				stats.current_cp_split = 0;
-				stats.lap_times = [];
-				stats.lap_splits = [];
-				stats.est_pace = [0];
-				stats.avg_lap_times = [];
-				stats.current_avg_lap = 0;
-				stats.current_median_lap = 0;
-				stats.current_cp_split = 0;
-				stats.current_cp_count = 0;
-				stats.trick_diff = [];
-				stats.trick_avg_diff = 0;
-				stats.trick_median_diff = 0;
+				playerStats['rollin'] = { ...statsInit };
 			});
 		});
 	}
