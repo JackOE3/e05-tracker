@@ -49,6 +49,7 @@ export const lapSplits: { [key: string]: Array<number> } = {
 export const CPS_PER_LAP = 8;
 
 type Stats = {
+	connected: boolean;
 	current_lap: number;
 	lap_times: number[];
 	lap_splits: number[];
@@ -64,6 +65,7 @@ type Stats = {
 	trick_median_diff: number | undefined;
 };
 export const statsInit: Stats = {
+	connected: false,
 	current_lap: 1,
 	lap_times: [],
 	lap_splits: [],
@@ -79,16 +81,21 @@ export const statsInit: Stats = {
 	trick_median_diff: undefined
 };
 
-export const players = ['rollin', 'jav', 'demon'] as const;
+export const players = ['Rollin', 'Demon', 'JaV'] as const;
 export type Player = (typeof players)[number];
 export type PlayerStats = {
 	[key in Player]: Stats;
 };
 export const playerStats: PlayerStats = {
-	rollin: deepClone(statsInit),
-	jav: deepClone(statsInit),
-	demon: deepClone(statsInit)
+	Rollin: deepClone(statsInit),
+	JaV: deepClone(statsInit),
+	Demon: deepClone(statsInit)
 };
+export const connected = writable<{ [key in Player]: boolean }>({
+	Rollin: false,
+	Demon: false,
+	JaV: false
+});
 
 export function isPlayer(player: string): boolean {
 	if (players.includes(player as Player)) return true;
@@ -96,7 +103,7 @@ export function isPlayer(player: string): boolean {
 	return false;
 }
 
-export const selectedPlayer = writable<Player>('rollin');
+export const selectedPlayer = writable<Player>('Rollin');
 
 export const stats = writable<PlayerStats>(deepClone(playerStats));
 

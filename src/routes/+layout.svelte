@@ -10,7 +10,7 @@
 
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
-	import { selectedPlayer } from '$lib/stats';
+	import { connected, players, selectedPlayer, stats } from '$lib/stats';
 
 	inject({ mode: dev ? 'development' : 'production' });
 </script>
@@ -30,19 +30,21 @@
 	<div class="float-right mr-4">
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger asChild let:builder>
-				<Button variant="outline" builders={[builder]}>Target</Button>
+				<Button variant="outline" builders={[builder]}>Choose Player</Button>
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content class="w-56">
 				<DropdownMenu.Label>Who do you want to track?</DropdownMenu.Label>
 				<DropdownMenu.Separator />
 				<DropdownMenu.RadioGroup bind:value={$selectedPlayer}>
-					<DropdownMenu.RadioItem value="rollin">Rollin</DropdownMenu.RadioItem>
-					<DropdownMenu.RadioItem value="demon" class="opacity-50">
-						Demon (Offline)
-					</DropdownMenu.RadioItem>
-					<DropdownMenu.RadioItem value="jav" class="opacity-50">
-						JaV (Offline)
-					</DropdownMenu.RadioItem>
+					{#each players as player}
+						<DropdownMenu.RadioItem value={player} disabled={!$connected[player]}>
+							{#if $connected[player]}
+								<span>{player}</span>
+							{:else}
+								<span>{player} (Offline)</span>
+							{/if}
+						</DropdownMenu.RadioItem>
+					{/each}
 				</DropdownMenu.RadioGroup>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>

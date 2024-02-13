@@ -3,7 +3,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Button } from '$lib/components/ui/button';
-	import { lapSplits, CPS_PER_LAP } from '$lib/stats';
+	import { lapSplits, CPS_PER_LAP, playerStats, connected } from '$lib/stats';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
 		ChevronUp,
@@ -16,10 +16,11 @@
 		Radio
 	} from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
-	import { capitalize, formatTime, scrollToBottom } from '$lib/my-utils';
+	import { formatTime, scrollToBottom } from '$lib/my-utils';
 	import { onMount } from 'svelte';
 	import { updateScroll, listenToSocket } from '$lib/webSocketLogic.js';
 	import {
+		stats,
 		selectedPlayer,
 		current_cp_count,
 		current_cp_split,
@@ -161,7 +162,9 @@
 				</Card.Title>
 				<Card.Description
 					>See various stats about the current run.
-					<br />Player: {capitalize($selectedPlayer)}
+					<br />Player: {$selectedPlayer}
+					<br />
+					{$connected['Rollin']}
 				</Card.Description>
 			</Card.Header>
 			<Card.Content>

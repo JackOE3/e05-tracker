@@ -35,16 +35,21 @@ export const statsInit: Stats = {
 	trick_median_diff: undefined
 };
 
-export const players = ['rollin', 'jav', 'demon'] as const;
+export const players = ['Rollin', 'JaV', 'Demon'] as const;
 export type Player = (typeof players)[number];
 export type PlayerStats = {
 	[key in Player]: Stats;
 };
 const deepClone = (obj: object) => JSON.parse(JSON.stringify(obj));
 export const playerStats: PlayerStats = {
-	rollin: deepClone(statsInit),
-	jav: deepClone(statsInit),
-	demon: deepClone(statsInit)
+	Rollin: deepClone(statsInit),
+	JaV: deepClone(statsInit),
+	Demon: deepClone(statsInit)
+};
+const connected: { [key in Player]: boolean } = {
+	Rollin: false,
+	Demon: false,
+	JaV: false
 };
 
 function median(values: number[]): number {
@@ -60,7 +65,8 @@ function median(values: number[]): number {
 	return values.length % 2 ? values[half] : (values[half - 1] + values[half]) / 2;
 }
 
-const player = players[0];
+const player = players[1];
+
 const webSocketServer = {
 	name: 'webSocketServer',
 	configureServer(server: ViteDevServer) {
@@ -70,7 +76,20 @@ const webSocketServer = {
 
 		io.on('connection', (socket) => {
 			console.log('id:', socket.id);
-			socket.emit('loadData', playerStats);
+			socket.emit('loadData', { playerStats, connected });
+
+			if (socket.handshake.auth.token !== 'rollin') {
+				console.log('no emit authentication for socket id:', socket.id);
+				return;
+			}
+
+			connected[player] = true;
+			io.emit('playerConnected', player);
+
+			socket.on('disconnect', () => {
+				connected[player] = false;
+				io.emit('playerDisconnected', player);
+			});
 
 			socket.on('cpCompleted', (message) => {
 				io.emit('cpCompletedResponse', { player, ...message });
@@ -130,7 +149,7 @@ const webSocketServer = {
 
 			socket.on('reset', () => {
 				io.emit('resetResponse', { player });
-				playerStats['rollin'] = deepClone(statsInit);
+				playerStats[player] = deepClone(statsInit);
 			});
 		});
 	}

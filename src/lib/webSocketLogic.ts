@@ -1,19 +1,38 @@
 import { io } from '$lib/webSocketConnection.js';
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { dev } from '$app/environment';
-import { type Player, type PlayerStats, statsInit, isPlayer, stats } from '$lib/stats';
+import { type Player, statsInit, isPlayer, stats, selectedPlayer, connected } from '$lib/stats';
 import { deepClone } from './my-utils';
 
 export const updateScroll = writable(0);
+
+export const connectedPlayers = writable<Player[]>([]);
 
 export function listenToSocket(client: string) {
 	if (io.connected) {
 		console.log(`${client} already connected`);
 		return;
 	}
-	io.on('loadData', (message: PlayerStats) => {
+	io.on('loadData', (message) => {
 		if (dev) console.log('loadData', message);
-		stats.set(message);
+		stats.set(message.playerStats);
+		connected.set(message.connected);
+		// automatically choose a connected player:
+		if (get(connected).Rollin) selectedPlayer.set('Rollin');
+		else if (get(connected).Demon) selectedPlayer.set('Demon');
+		else if (get(connected).JaV) selectedPlayer.set('JaV');
+	});
+	io.on('playerConnected', (player: Player) => {
+		connected.update(($connected) => {
+			$connected[player] = true;
+			return $connected;
+		});
+	});
+	io.on('playerDisconnected', (player: Player) => {
+		connected.update(($connected) => {
+			$connected[player] = false;
+			return $connected;
+		});
 	});
 
 	io.on('cpCompletedResponse', (message) => {
@@ -76,5 +95,15 @@ export function listenToSocket(client: string) {
 
 	io.on('disconnect', (reason) => {
 		console.log('disconnected from socket. reason:', reason);
+	});
+
+	io.on('playerConnected', (player) => {
+		console.log('player connected:', player);
+		if (!isPlayer(player)) return;
+		connectedPlayers.update(($players) => [player, ...$players]);
+	});
+	io.on('playerDisconnected', (player) => {
+		console.log('player disconnected:', player);
+		if (!isPlayer(player)) return;
 	});
 }
