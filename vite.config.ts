@@ -7,6 +7,7 @@ export const CPS_PER_LAP = 8;
 let trick_start_time = 0;
 
 type Stats = {
+	current_lap: number;
 	lap_times: number[];
 	lap_splits: number[];
 	est_pace: (number | undefined)[];
@@ -21,6 +22,7 @@ type Stats = {
 	trick_median_diff: number | undefined;
 };
 export const statsInit: Stats = {
+	current_lap: 1,
 	lap_times: [],
 	lap_splits: [],
 	est_pace: [undefined],
@@ -108,7 +110,7 @@ const webSocketServer = {
 					stats.trick_avg_diff = sum / stats.trick_diff.length || 0;
 					stats.trick_median_diff = median(stats.trick_diff);
 
-					const current_lap = 1 + Math.floor(stats.current_cp_count / CPS_PER_LAP);
+					stats.current_lap = 1 + Math.floor(stats.current_cp_count / CPS_PER_LAP);
 
 					const previous_lap_split = stats.lap_splits[stats.lap_splits.length - 1];
 					const current_lap_time =
@@ -119,7 +121,7 @@ const webSocketServer = {
 
 					io.emit('lapStats', {
 						player,
-						current_lap,
+						current_lap: stats.current_lap,
 						current_lap_time,
 						current_lap_split: stats.current_cp_split,
 						current_trick_diff: trickDiff,

@@ -3,7 +3,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Button } from '$lib/components/ui/button';
-	import { lapSplits, CPS_PER_LAP, playerStats, connected } from '$lib/stats';
+	import { lapSplits, CPS_PER_LAP } from '$lib/stats';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
 		ChevronUp,
@@ -20,7 +20,7 @@
 	import { onMount } from 'svelte';
 	import { updateScroll, listenToSocket } from '$lib/webSocketLogic.js';
 	import {
-		stats,
+		current_lap,
 		selectedPlayer,
 		current_cp_count,
 		current_cp_split,
@@ -37,6 +37,7 @@
 
 	import { slide } from 'svelte/transition';
 	import { Separator } from '$lib/components/ui/separator';
+	import { User } from 'lucide-svelte';
 
 	onMount(() => {
 		listenToSocket('browser');
@@ -154,20 +155,21 @@
 						<Radio color="rgb(220 38 38)" />
 						Current Run
 					</span>
-
-					<Badge>
-						Lap {1 + Math.floor($current_cp_count / CPS_PER_LAP)} | CP {$current_cp_count %
-							CPS_PER_LAP}
+					<Badge class="flex w-24 justify-center gap-1 text-base" variant="outline">
+						<User size="20px" color="rgb(132 204 22)" />
+						{$selectedPlayer}
 					</Badge>
 				</Card.Title>
-				<Card.Description
-					>See various stats about the current run.
-					<br />Player: {$selectedPlayer}
-					<br />
-					{$connected['Rollin']}
-				</Card.Description>
+				<Card.Description>See various stats about the current run.</Card.Description>
 			</Card.Header>
 			<Card.Content>
+				<div>
+					<span>Location</span>
+					<Badge variant="outline" class="float-right font-mono">
+						Lap {$current_lap} / CP {$current_cp_count % CPS_PER_LAP}
+					</Badge>
+				</div>
+
 				<div>
 					<span>Current Split</span>
 					<span class="float-right font-mono">

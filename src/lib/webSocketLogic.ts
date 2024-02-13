@@ -54,6 +54,7 @@ export function listenToSocket(client: string) {
 		if (!isPlayer(player)) return;
 
 		stats.update(($stats) => {
+			$stats[player].current_lap = message.current_lap;
 			$stats[player].lap_times.push(message.current_lap_time);
 			$stats[player].lap_splits.push(message.current_lap_split);
 			$stats[player].trick_diff.push(message.current_trick_diff);
@@ -63,7 +64,7 @@ export function listenToSocket(client: string) {
 		});
 
 		setTimeout(() => {
-			updateScroll.update((i) => i + 1);
+			if (get(selectedPlayer) === player) updateScroll.update((i) => i + 1);
 		}, 50);
 	});
 

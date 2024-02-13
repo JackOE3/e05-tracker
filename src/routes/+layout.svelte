@@ -10,7 +10,8 @@
 
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
-	import { connected, players, selectedPlayer, stats } from '$lib/stats';
+	import { connected, players, selectedPlayer } from '$lib/stats';
+	import { updateScroll } from '$lib/webSocketLogic';
 
 	inject({ mode: dev ? 'development' : 'production' });
 </script>
@@ -37,7 +38,11 @@
 				<DropdownMenu.Separator />
 				<DropdownMenu.RadioGroup bind:value={$selectedPlayer}>
 					{#each players as player}
-						<DropdownMenu.RadioItem value={player} disabled={!$connected[player]}>
+						<DropdownMenu.RadioItem
+							value={player}
+							disabled={!$connected[player]}
+							on:click={() => updateScroll.update((i) => i + 1)}
+						>
 							{#if $connected[player]}
 								<span>{player}</span>
 							{:else}
