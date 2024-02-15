@@ -103,18 +103,18 @@
 					{#each display_times as lap_time, i}
 						<Table.Row>
 							<Table.Cell class="w-12 p-2 font-medium">{i + 1}</Table.Cell>
-							<Table.Cell class="w-24 p-2">{formatTime(lap_time / 1000, true)}</Table.Cell>
-							<Table.Cell class="w-24 p-2">{formatTime(display_splits[i] / 1000, true)}</Table.Cell>
+							<Table.Cell class="w-24 p-2">{formatTime(lap_time, true)}</Table.Cell>
+							<Table.Cell class="w-24 p-2">{formatTime(display_splits[i], true)}</Table.Cell>
 							<Table.Cell class="w-24 p-2">
 								<div class="flex flex-row items-center justify-start gap-0">
 									<span
-										class={display_splits[i] / 1000 - lapSplits[comparison][i] > 0
+										class={display_splits[i] - lapSplits[comparison][i] * 1000 > 0
 											? 'text-red-600'
 											: 'text-blue-500'}
 									>
-										{`${display_splits[i] / 1000 - lapSplits[comparison][i] > 0 ? '+' : '-'}${formatTime(Math.abs(display_splits[i] / 1000 - lapSplits[comparison][i]), true)}`}
+										{`${display_splits[i] - lapSplits[comparison][i] * 1000 > 0 ? '+' : '-'}${formatTime(Math.abs(display_splits[i] - lapSplits[comparison][i] * 1000), true)}`}
 									</span>
-									{#if i > 0 && display_splits[i] / 1000 - lapSplits[comparison][i] > display_splits[i - 1] / 1000 - lapSplits[comparison][i - 1]}
+									{#if i > 0 && display_splits[i] - lapSplits[comparison][i] * 1000 > display_splits[i - 1] - lapSplits[comparison][i - 1] * 1000}
 										<ChevronUp color="rgb(249 115 22)" size="1rem" />
 									{:else if i > 0}
 										<ChevronDown color="rgb(34 197 94)" size="1rem" />
@@ -122,14 +122,12 @@
 								</div>
 							</Table.Cell>
 							<Table.Cell class="w-24 p-2">
-								{#if $trick_diff[i]}
-									<span class={$trick_diff[i] > 0 ? 'text-red-600' : 'text-blue-500'}>
-										{`${$trick_diff[i] > 0 ? '+' : '-'}${formatTime(Math.abs($trick_diff[i]), true)}`}
-									</span>
-								{/if}
+								<span class={$trick_diff[i] > 0 ? 'text-red-600' : 'text-blue-500'}>
+									{`${$trick_diff[i] > 0 ? '+' : '-'}${formatTime(Math.abs($trick_diff[i]), true)}`}
+								</span>
 							</Table.Cell>
 							<Table.Cell class="w-24 p-2">
-								{$est_pace[i] ? formatTime($est_pace[i] / 1000, true) : '-'}
+								{$est_pace[i] ? formatTime($est_pace[i], true) : '-'}
 							</Table.Cell>
 						</Table.Row>
 					{:else}
@@ -173,17 +171,17 @@
 				<div>
 					<span>Current Split</span>
 					<span class="float-right font-mono">
-						{$current_cp_split ? formatTime($current_cp_split / 1000, true) : '-'}
+						{$current_cp_split ? formatTime($current_cp_split, true) : '-'}
 					</span>
 				</div>
 				<div>
 					<span>Current Pace</span>
 					<span class="float-right font-mono">
-						{$current_est_pace ? formatTime($current_est_pace / 1000, true) : '-'}
+						{$current_est_pace ? formatTime($current_est_pace, true) : '-'}
 					</span>
 				</div>
 				<div>
-					<span>Average Lap</span>
+					<span>Average Flying Lap</span>
 					<span class="float-right font-mono">
 						{$current_avg_lap ? ($current_avg_lap / 1000).toFixed(2) : '-'}
 					</span>
@@ -192,21 +190,41 @@
 				{#if showMore}
 					<div transition:slide={{ duration: 500 }}>
 						<div>
-							<span>Median Lap</span>
+							<span>Median Flying Lap</span>
 							<span class="float-right font-mono">
 								{$current_median_lap ? ($current_median_lap / 1000).toFixed(2) : '-'}
 							</span>
 						</div>
 						<div>
-							<span>Average Trick Diff</span>
+							<span>Average Trick Delta</span>
 							<span class="float-right font-mono">
-								{$trick_avg_diff ? $trick_avg_diff.toFixed(2) : '-'}
+								{#if $trick_avg_diff}
+									<span
+										class={$trick_avg_diff && $trick_avg_diff > 0
+											? 'text-red-600'
+											: 'text-blue-500'}
+									>
+										{`${$trick_avg_diff && $trick_avg_diff > 0 ? '+' : '-'}${$trick_avg_diff ? formatTime(Math.abs($trick_avg_diff), true) : '-'}`}
+									</span>
+								{:else}
+									<span> - </span>
+								{/if}
 							</span>
 						</div>
 						<div>
-							<span>Median Trick Diff</span>
+							<span>Median Trick Delta</span>
 							<span class="float-right font-mono">
-								{$trick_median_diff ? $trick_median_diff.toFixed(2) : '-'}
+								{#if $trick_median_diff}
+									<span
+										class={$trick_median_diff && $trick_median_diff > 0
+											? 'text-red-600'
+											: 'text-blue-500'}
+									>
+										{`${$trick_median_diff && $trick_median_diff > 0 ? '+' : '-'}${$trick_median_diff ? formatTime(Math.abs($trick_median_diff), true) : '-'}`}
+									</span>
+								{:else}
+									<span> - </span>
+								{/if}
 							</span>
 						</div>
 					</div>

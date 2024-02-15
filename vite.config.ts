@@ -11,7 +11,7 @@ type Stats = {
 	lap_times: number[];
 	lap_splits: number[];
 	est_pace: (number | undefined)[];
-	avg_lap_times: number[];
+	avg_lap_times: (number | undefined)[];
 	current_avg_lap: number | undefined;
 	current_median_lap: number | undefined;
 
@@ -26,7 +26,7 @@ export const statsInit: Stats = {
 	lap_times: [],
 	lap_splits: [],
 	est_pace: [undefined],
-	avg_lap_times: [],
+	avg_lap_times: [undefined],
 	current_avg_lap: undefined,
 	current_median_lap: undefined,
 
@@ -37,7 +37,7 @@ export const statsInit: Stats = {
 	trick_median_diff: undefined
 };
 
-export const players = ['Rollin', 'JaV', 'Demon'] as const;
+export const players = ['Rollin', 'JaV', 'Demon', 'RotakeR'] as const;
 export type Player = (typeof players)[number];
 export type PlayerStats = {
 	[key in Player]: Stats;
@@ -46,12 +46,14 @@ const deepClone = (obj: object) => JSON.parse(JSON.stringify(obj));
 export const playerStats: PlayerStats = {
 	Rollin: deepClone(statsInit),
 	JaV: deepClone(statsInit),
-	Demon: deepClone(statsInit)
+	Demon: deepClone(statsInit),
+	RotakeR: deepClone(statsInit)
 };
 const connected: { [key in Player]: boolean } = {
 	Rollin: false,
 	Demon: false,
-	JaV: false
+	JaV: false,
+	RotakeR: false
 };
 
 function median(values: number[]): number {
@@ -67,7 +69,7 @@ function median(values: number[]): number {
 	return values.length % 2 ? values[half] : (values[half - 1] + values[half]) / 2;
 }
 
-const player = players[1];
+const player = players[0];
 
 const webSocketServer = {
 	name: 'webSocketServer',
@@ -80,21 +82,25 @@ const webSocketServer = {
 			console.log('id:', socket.id);
 			socket.emit('loadData', { playerStats, connected });
 
+			if (socket.handshake.auth.token === undefined) return;
 			if (socket.handshake.auth.token !== 'rollin') {
-				console.log('no emit authentication for socket id:', socket.id);
+				//console.log('no emit authentication for socket id:', socket.id);
+				socket.emit('player_not_found');
 				return;
 			}
 
 			connected[player] = true;
-			io.emit('playerConnected', player);
+			socket.broadcast.emit('playerConnected', player);
+			socket.emit('client_connected', player);
 
 			socket.on('disconnect', () => {
 				connected[player] = false;
-				io.emit('playerDisconnected', player);
+				socket.broadcast.emit('playerDisconnected', player);
+				socket.emit('client_disconnected', player);
 			});
 
 			socket.on('cpCompleted', (message) => {
-				io.emit('cpCompletedResponse', { player, ...message });
+				socket.broadcast.emit('cpCompletedResponse', { player, ...message });
 				const stats = playerStats[player];
 
 				stats.current_cp_count = message.current_cp_count;
@@ -103,11 +109,11 @@ const webSocketServer = {
 				if (stats.current_cp_count > 0 && stats.current_cp_count % CPS_PER_LAP === 0) {
 					const trickTime = stats.current_cp_split! - trick_start_time;
 					// "This sector without the trick is on average exactly 21 seconds long."
-					const trickDiff = (trickTime - 21000) / 1000;
+					const trickDiff = trickTime - 21000;
 					stats.trick_diff.push(trickDiff);
 
 					const sum = stats.trick_diff.reduce((a, b) => a + b, 0);
-					stats.trick_avg_diff = sum / stats.trick_diff.length || 0;
+					stats.trick_avg_diff = sum / stats.trick_diff.length;
 					stats.trick_median_diff = median(stats.trick_diff);
 
 					stats.current_lap = 1 + Math.floor(stats.current_cp_count / CPS_PER_LAP);
@@ -119,7 +125,7 @@ const webSocketServer = {
 					stats.lap_times.push(current_lap_time);
 					stats.lap_splits.push(stats.current_cp_split!);
 
-					io.emit('lapStats', {
+					socket.broadcast.emit('lapStats', {
 						player,
 						current_lap: stats.current_lap,
 						current_lap_time,
@@ -130,15 +136,15 @@ const webSocketServer = {
 					});
 					// start at 2nd lap:
 					if (stats.current_cp_count > CPS_PER_LAP) {
-						const sum = stats.lap_times.reduce((a, b) => a + b, 0);
-						stats.current_avg_lap = sum / stats.lap_times.length || 0;
+						const sum = stats.lap_times.slice(1).reduce((a, b) => a + b, 0);
+						stats.current_avg_lap = sum / (stats.lap_times.length - 1);
 						stats.avg_lap_times.push(stats.current_avg_lap);
 						const current_est_pace = stats.lap_times[0] + 59 * stats.current_avg_lap;
 						stats.est_pace.push(current_est_pace);
 						if (stats.lap_times.length >= 3)
 							stats.current_median_lap = median(stats.lap_times.slice(1));
 
-						io.emit('lapStatsExtra', {
+						socket.broadcast.emit('lapStatsExtra', {
 							player,
 							current_avg_lap: stats.current_avg_lap,
 							current_median_lap: stats.current_median_lap,
@@ -150,7 +156,7 @@ const webSocketServer = {
 			});
 
 			socket.on('reset', () => {
-				io.emit('resetResponse', { player });
+				socket.broadcast.emit('resetResponse', { player });
 				playerStats[player] = deepClone(statsInit);
 			});
 		});

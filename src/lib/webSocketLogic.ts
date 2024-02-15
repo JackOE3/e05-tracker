@@ -6,13 +6,14 @@ import { deepClone } from './my-utils';
 
 export const updateScroll = writable(0);
 
-export const connectedPlayers = writable<Player[]>([]);
-
 export function listenToSocket(client: string) {
 	if (io.connected) {
 		console.log(`${client} already connected`);
 		return;
 	}
+
+	io.on('client_connected', (player) => console.log('CLIENT CONNECTED', player));
+
 	io.on('loadData', (message) => {
 		if (dev) console.log('loadData', message);
 		stats.set(message.playerStats);
@@ -24,12 +25,16 @@ export function listenToSocket(client: string) {
 		else if (get(connected).RotakeR) selectedPlayer.set('RotakeR');
 	});
 	io.on('playerConnected', (player: Player) => {
+		if (!isPlayer(player)) return;
+		console.log('player connected:', player);
 		connected.update(($connected) => {
 			$connected[player] = true;
 			return $connected;
 		});
 	});
 	io.on('playerDisconnected', (player: Player) => {
+		if (!isPlayer(player)) return;
+		console.log('player disconnected:', player);
 		connected.update(($connected) => {
 			$connected[player] = false;
 			return $connected;
@@ -97,15 +102,5 @@ export function listenToSocket(client: string) {
 
 	io.on('disconnect', (reason) => {
 		console.log('disconnected from socket. reason:', reason);
-	});
-
-	io.on('playerConnected', (player) => {
-		console.log('player connected:', player);
-		if (!isPlayer(player)) return;
-		connectedPlayers.update(($players) => [player, ...$players]);
-	});
-	io.on('playerDisconnected', (player) => {
-		console.log('player disconnected:', player);
-		if (!isPlayer(player)) return;
 	});
 }
