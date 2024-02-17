@@ -164,7 +164,11 @@
 				<div>
 					<span>Location</span>
 					<Badge variant="outline" class="float-right font-mono">
-						Lap {$current_lap} / CP {$current_cp_count % CPS_PER_LAP}
+						{#if $current_lap <= 60}
+							Lap {$current_lap} / CP {$current_cp_count % CPS_PER_LAP}
+						{:else}
+							Finished
+						{/if}
 					</Badge>
 				</div>
 
